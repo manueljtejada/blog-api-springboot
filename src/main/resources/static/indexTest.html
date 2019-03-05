@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Messages</title>
+<script src="webjars/jquery/3.3.1/jquery.min.js"></script>
+<script>
+$(document).ready(() => {
+	$.get("http://localhost:8080/messages", data => console.log(data));
+})
+</script>
+</head>
+<body>
+
+</body>
+</html>
