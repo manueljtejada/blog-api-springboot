@@ -2,8 +2,14 @@ package es.uv.dbcds.comments.web;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +24,7 @@ import es.uv.dbcds.comments.domain.Message;
 import es.uv.dbcds.comments.service.MessagesService;
 
 @RestController
+@CrossOrigin
 public class MessageController {
 	@Autowired
 	private MessagesService messagesService;
@@ -49,14 +56,15 @@ public class MessageController {
 	// Add a new message
 	@PostMapping("/messages")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Message addMessage(@RequestBody Message message) {
+	public Message addMessage(@RequestBody @Valid Message message) {
 		return messagesService.addMessage(message);
 	}
 
 	// Add a new comment to a message
 	@PostMapping("messages/{id}/comments")
-	public void addComment(@PathVariable("id") int id, @RequestBody Comment comment) {
-		messagesService.addComment(id, comment);
+	@ResponseStatus(HttpStatus.CREATED)
+	public Comment addComment(@PathVariable("id") int id, @RequestBody Comment comment) {
+		return messagesService.addComment(id, comment);
 	}
 
 	// Delete a message by ID
@@ -70,13 +78,13 @@ public class MessageController {
 	public void deleteComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
 		messagesService.deleteComment(messageId, commentId);
 	}
-	
+
 	// Update a message
 	@PutMapping("/messages/{id}")
 	public void updateMessage(@PathVariable("id") int id, @RequestBody Message newMessage) {
 		messagesService.updateMessage(id, newMessage);
 	}
-	
+
 	// Update a comment
 	@PutMapping("/messages/{messageId}/comments/{commentId}")
 	public void updateComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId,

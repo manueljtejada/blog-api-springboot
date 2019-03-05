@@ -26,12 +26,13 @@ public class MessagesService {
 	}
 
 	public Message getMessageById(int id) {
-		return messages.stream().filter(r -> r.getId() == id).findFirst().get();
+		return messages.stream().filter(r -> r.getId() == id).findFirst()
+				.orElseThrow(() -> new MessageNotFoundException("No message found"));
 	}
 
 	public Comment getCommentById(int messageId, int commentId) {
 		return this.getMessageById(messageId).getComments().stream().filter(c -> c.getId() == commentId).findFirst()
-				.get();
+				.orElseThrow(() -> new MessageNotFoundException("No comment found"));
 	}
 
 	public List<Comment> getMessageComments(int id) {
@@ -43,21 +44,22 @@ public class MessagesService {
 		return message;
 	}
 
-	public void addComment(int id, Comment comment) {
+	public Comment addComment(int id, Comment comment) {
 		this.getMessageById(id).getComments().add(comment);
+		return comment;
 	}
 
 	public void deleteMessage(int id) {
 		Message message = this.getMessageById(id);
 		messages.remove(message);
 	}
-	
+
 	public void deleteComment(int messageId, int commentId) {
 		Message message = this.getMessageById(messageId);
 		Comment comment = this.getCommentById(messageId, commentId);
 		message.getComments().remove(comment);
 	}
-	
+
 	public void updateMessage(int id, Message newMessage) {
 		Message messageToUpdate = this.getMessageById(id);
 		messageToUpdate.setId(newMessage.getId());
@@ -65,7 +67,7 @@ public class MessagesService {
 		messageToUpdate.setBody(newMessage.getBody());
 		messageToUpdate.setComments(newMessage.getComments());
 	}
-	
+
 	public void updateComment(int messageId, int commentId, Comment newComment) {
 		Comment commentToUpdate = this.getCommentById(messageId, commentId);
 		commentToUpdate.setId(newComment.getId());
