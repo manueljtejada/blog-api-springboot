@@ -2,15 +2,21 @@ package es.uv.dbcds.comments.domain;
 
 import java.util.List;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 public class Message {
+	@Min(0)
 	private int id;
+
+	@Size(min=1, max=50)
 	private String title;
+
+	@NotNull
 	private String body;
+
 	private List<Comment> comments;
-
-	private Message() {
-
-	}
 
 	public Message(int id, String title, String body, List<Comment> comments) {
 		super();
