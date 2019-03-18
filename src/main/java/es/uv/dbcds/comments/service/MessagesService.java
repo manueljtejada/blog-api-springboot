@@ -17,8 +17,8 @@ public class MessagesService {
 	public MessagesService() {
 		comments.add(new Comment(1, "Manuel", "matemer@alumni.uv.es", "Bye"));
 		comments2.add(new Comment(2, "Manu", "sample@uv.es", "fhsa agsf ak"));
-		messages.add(new Message(1, "Hello, World", "Hello hello hello", comments));
-		messages.add(new Message(2, "Hola, Mundo", "Hola hola hola", comments2));
+		messages.add(new Message(1, "Hello, World", "Hello hello hello", comments, 0));
+		messages.add(new Message(2, "Hola, Mundo", "Hola hola hola", comments2, 0));
 	}
 
 	public List<Message> getMessages() {
@@ -60,19 +60,30 @@ public class MessagesService {
 		message.getComments().remove(comment);
 	}
 
-	public void updateMessage(int id, Message newMessage) {
+	public Message updateMessage(int id, Message newMessage) {
 		Message messageToUpdate = this.getMessageById(id);
 		messageToUpdate.setId(newMessage.getId());
 		messageToUpdate.setTitle(newMessage.getTitle());
 		messageToUpdate.setBody(newMessage.getBody());
 		messageToUpdate.setComments(newMessage.getComments());
+		
+		return messageToUpdate;
 	}
 
-	public void updateComment(int messageId, int commentId, Comment newComment) {
+	public Comment updateComment(int messageId, int commentId, Comment newComment) {
 		Comment commentToUpdate = this.getCommentById(messageId, commentId);
 		commentToUpdate.setId(newComment.getId());
 		commentToUpdate.setEmail(newComment.getEmail());
 		commentToUpdate.setName(newComment.getName());
 		commentToUpdate.setText(newComment.getText());
+		
+		return commentToUpdate;
+	}
+	
+	public Message likeMessage(int id) {
+		Message message = this.getMessageById(id);
+		int count = message.getLikes();
+		message.setLikes(++count);
+		return message;
 	}
 }
