@@ -10,23 +10,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Comment {
 	@Min(0)
 	private int id;
-	
+
 	@NotNull
-	@Size(min=1)
+	@Size(min = 1)
 	private String name;
-	
+
 	@Email
 	private String email;
-	
+
 	@NotNull
-	@Size(min=1)
+	@Size(min = 1)
 	private String text;
-	
+
 	@JsonIgnore
 	private Message parent;
-	
+
 	public Comment() {
-		
+
 	}
 
 	public Comment(int id, String name, String email, String text) {
@@ -67,6 +67,14 @@ public class Comment {
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+	public Message getParent() {
+		return parent;
+	}
+
+	public void setParent(Message parent) {
+		this.parent = parent;
 	}
 
 }
