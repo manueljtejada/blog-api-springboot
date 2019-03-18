@@ -1,14 +1,20 @@
 package es.uv.dbcds.comments.web;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,76 +25,138 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+//import es.uv.dbcds.comments.domain.Comment;
 import es.uv.dbcds.comments.domain.Comment;
 import es.uv.dbcds.comments.domain.Message;
 import es.uv.dbcds.comments.service.MessagesService;
+//import es.uv.dbcds.comments.service.MessageNotFoundException;
+//import es.uv.dbcds.comments.service.MessagesService;
 
 @RestController
 @CrossOrigin
 public class MessageController {
 	@Autowired
-	private MessagesService messagesService;
+	private MessagesService service;
+	
+	@Autowired
+	private MessageResourceAssembler assembler;
+	
+	@Autowired
+	private CommentResourceAssembler cAssembler;
 
 	// Get all messages
 	@GetMapping("/messages")
-	public List<Message> getAllMessages() {
-		return messagesService.getMessages();
+	Resources<Resource<Message>> getMessages() {
+		
+		List<Resource<Message>> messages = service.getMessages().stream()
+		        .map(assembler::toResource)
+		        .collect(Collectors.toList());
+
+		        return new Resources<>(messages,
+		        linkTo(methodOn(MessageController.class).getMessages()).withSelfRel());
+	}
+	
+	// Add new message
+	@PostMapping("/messages")
+	@ResponseStatus(HttpStatus.CREATED)
+	ResponseEntity<?> newMessage(@RequestBody @Valid Message newMessage) throws URISyntaxException {
+
+		Resource<Message> resource = assembler.toResource(service.addMessage(newMessage));
+
+		return ResponseEntity
+			.created(new URI(resource.getId().expand().getHref()))
+			.body(resource);
 	}
 
 	// Get message by ID
-	@GetMapping("messages/{id}")
-	public Message getMessageById(@PathVariable("id") int id) {
-		return messagesService.getMessageById(id);
-	}
+	@GetMapping("/messages/{id}")
+	Resource<Message> getMessageById(@PathVariable int id) {
 
-	// Get all comments from a message
-	@GetMapping("messages/{id}/comments")
-	public List<Comment> getMessageComments(@PathVariable("id") int id) {
-		return messagesService.getMessageComments(id);
-	}
-
-	// Get a comment by ID
-	@GetMapping("messages/{messageId}/comments/{commentId}")
-	public Comment getCommentById(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
-		return messagesService.getCommentById(messageId, commentId);
-	}
-
-	// Add a new message
-	@PostMapping("/messages")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Message addMessage(@RequestBody @Valid Message message) {
-		return messagesService.addMessage(message);
-	}
-
-	// Add a new comment to a message
-	@PostMapping("messages/{id}/comments")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Comment addComment(@PathVariable("id") int id, @RequestBody Comment comment) {
-		return messagesService.addComment(id, comment);
+		Message message = service.getMessageById(id);
+		
+		return assembler.toResource(message);
 	}
 
 	// Delete a message by ID
 	@DeleteMapping("/messages/{id}")
-	public void deleteMessage(@PathVariable("id") int id) {
-		messagesService.deleteMessage(id);
+	ResponseEntity<?> deleteMessage(@PathVariable int id) {
+
+		service.deleteMessage(id);
+		
+		return ResponseEntity.noContent().build();
 	}
 
-	// Delete a comment by ID
-	@DeleteMapping("/messages/{messageId}/comments/{commentId}")
-	public void deleteComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
-		messagesService.deleteComment(messageId, commentId);
-	}
 
 	// Update a message
 	@PutMapping("/messages/{id}")
-	public void updateMessage(@PathVariable("id") int id, @RequestBody Message newMessage) {
-		messagesService.updateMessage(id, newMessage);
+	public ResponseEntity<?> updateMessage(@PathVariable int id, @RequestBody Message newMessage) throws URISyntaxException {
+		Message message = service.updateMessage(id, newMessage);
+		
+		Resource<Message> resource = assembler.toResource(message);
+		
+		return ResponseEntity
+				.created(new URI(resource.getId().expand().getHref()))
+				.body(resource);
+	}
+	
+	// Like a comment
+	@PutMapping("/messages/{id}/like")
+	public ResponseEntity<?> likeMessage(@PathVariable int id) throws URISyntaxException {
+		Message message = service.likeMessage(id);
+		
+		Resource<Message> resource = assembler.toResource(message);
+		
+		return ResponseEntity
+				.created(new URI(resource.getId().expand().getHref()))
+				.body(resource);
+	}
+	
+	// Get all comments from a message
+	@GetMapping("messages/{id}/comments")
+	public Resources<Resource<Comment>> getMessageComments(@PathVariable("id") int id) {
+		
+		List<Resource<Comment>> comments = service.getMessageById(id).getComments()
+				.stream().map(cAssembler::toResource).collect(Collectors.toList());
+		
+		return new Resources<>(comments,
+		        linkTo(methodOn(MessageController.class).getMessageComments(id)).withSelfRel());
+	}
+	
+	@PostMapping("messages/{id}/comments")
+	@ResponseStatus(HttpStatus.CREATED)
+	public ResponseEntity<?> addComment(@PathVariable("id") int id, @RequestBody @Valid Comment newComment) throws URISyntaxException {
+		
+		Resource<Comment> resource = cAssembler.toResource(service.addComment(id, newComment));
+		
+		return ResponseEntity
+				.created(new URI(resource.getId().expand().getHref()))
+				.body(resource);
+	}
+	
+	@GetMapping("messages/{messageId}/comments/{commentId}")
+	public Resource<Comment> getCommentById(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
+		Comment comment = service.getCommentById(messageId, commentId);
+		
+		return cAssembler.toResource(comment);
+	}
+	
+	// Delete a comment by ID
+	@DeleteMapping("/messages/{messageId}/comments/{commentId}")
+	public ResponseEntity<?> deleteComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
+		service.deleteComment(messageId, commentId);
+		return ResponseEntity.noContent().build();
 	}
 
 	// Update a comment
 	@PutMapping("/messages/{messageId}/comments/{commentId}")
-	public void updateComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId,
-			@RequestBody Comment newComment) {
-		messagesService.updateComment(messageId, commentId, newComment);
+	public ResponseEntity<?> updateComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId,
+			@RequestBody Comment newComment) throws URISyntaxException {
+		Comment commentToUpdate = service.updateComment(messageId, commentId, newComment);
+		
+		Resource<Comment> resource = cAssembler.toResource(commentToUpdate);
+		
+		return ResponseEntity
+				.created(new URI(resource.getId().expand().getHref()))
+				.body(resource);
 	}
 }
