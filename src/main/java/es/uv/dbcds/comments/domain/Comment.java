@@ -29,12 +29,13 @@ public class Comment {
 
 	}
 
-	public Comment(int id, String name, String email, String text) {
+	public Comment(int id, String name, String email, String text, Message parent) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.email = email;
 		this.text = text;
+		this.parent = parent;
 	}
 
 	public int getId() {

@@ -15,10 +15,12 @@ public class MessagesService {
 	private final List<Comment> comments2 = new ArrayList<>();
 
 	public MessagesService() {
-		comments.add(new Comment(1, "Manuel", "matemer@alumni.uv.es", "Bye"));
-		comments2.add(new Comment(2, "Manu", "sample@uv.es", "fhsa agsf ak"));
-		messages.add(new Message(1, "Hello, World", "Hello hello hello", comments, 0));
-		messages.add(new Message(2, "Hola, Mundo", "Hola hola hola", comments2, 0));
+		Message message1 = new Message(1, "Hello, World", "Hello hello hello", comments, 0);
+		Message message2 = new Message(2, "Hola, Mundo", "Hola hola hola", comments2, 0); 
+		comments.add(new Comment(1, "Manuel", "matemer@alumni.uv.es", "Bye", message1));
+		comments2.add(new Comment(2, "Manu", "sample@uv.es", "fhsa agsf ak", message2));
+		messages.add(message1);
+		messages.add(message2);
 	}
 
 	public List<Message> getMessages() {
