@@ -15,8 +15,8 @@ public class CommentResourceAssembler implements ResourceAssembler<Comment, Reso
 	@Override
 	public Resource<Comment> toResource(Comment comment) {
 		return new Resource<>(comment,
-			linkTo(methodOn(MessageController.class).getCommentById(comment.getParent().getId(), comment.getId())).withSelfRel(),
-			linkTo(methodOn(MessageController.class).getMessageComments(comment.getParent().getId())).withSelfRel());
+			linkTo(methodOn(CommentController.class).getCommentById(comment.getParent().getId(), comment.getId())).withSelfRel(),
+			linkTo(methodOn(CommentController.class).getMessageComments(comment.getParent().getId())).withSelfRel());
 	}
 
 }

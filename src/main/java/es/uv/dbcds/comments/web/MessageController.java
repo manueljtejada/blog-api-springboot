@@ -37,17 +37,17 @@ import es.uv.dbcds.comments.service.MessagesService;
 public class MessageController {
 	@Autowired
 	private MessagesService service;
-	
+
 	@Autowired
 	private MessageResourceAssembler assembler;
-	
+
 	@Autowired
 	private CommentResourceAssembler cAssembler;
 
 	// Get all messages
 	@GetMapping("/messages")
 	Resources<Resource<Message>> getMessages() {
-		
+
 		List<Resource<Message>> messages = service.getMessages().stream()
 		        .map(assembler::toResource)
 		        .collect(Collectors.toList());
@@ -55,7 +55,7 @@ public class MessageController {
 		        return new Resources<>(messages,
 		        linkTo(methodOn(MessageController.class).getMessages()).withSelfRel());
 	}
-	
+
 	// Add new message
 	@PostMapping("/messages")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -73,7 +73,7 @@ public class MessageController {
 	Resource<Message> getMessageById(@PathVariable int id) {
 
 		Message message = service.getMessageById(id);
-		
+
 		return assembler.toResource(message);
 	}
 
@@ -82,7 +82,7 @@ public class MessageController {
 	ResponseEntity<?> deleteMessage(@PathVariable int id) {
 
 		service.deleteMessage(id);
-		
+
 		return ResponseEntity.noContent().build();
 	}
 
@@ -91,70 +91,21 @@ public class MessageController {
 	@PutMapping("/messages/{id}")
 	public ResponseEntity<?> updateMessage(@PathVariable int id, @RequestBody Message newMessage) throws URISyntaxException {
 		Message message = service.updateMessage(id, newMessage);
-		
+
 		Resource<Message> resource = assembler.toResource(message);
-		
+
 		return ResponseEntity
 				.created(new URI(resource.getId().expand().getHref()))
 				.body(resource);
 	}
-	
+
 	// Like a comment
 	@PutMapping("/messages/{id}/like")
 	public ResponseEntity<?> likeMessage(@PathVariable int id) throws URISyntaxException {
 		Message message = service.likeMessage(id);
-		
-		Resource<Message> resource = assembler.toResource(message);
-		
-		return ResponseEntity
-				.created(new URI(resource.getId().expand().getHref()))
-				.body(resource);
-	}
-	
-	// Get all comments from a message
-	@GetMapping("messages/{id}/comments")
-	public Resources<Resource<Comment>> getMessageComments(@PathVariable("id") int id) {
-		
-		List<Resource<Comment>> comments = service.getMessageById(id).getComments()
-				.stream().map(cAssembler::toResource).collect(Collectors.toList());
-		
-		return new Resources<>(comments,
-		        linkTo(methodOn(MessageController.class).getMessageComments(id)).withSelfRel());
-	}
-	
-	@PostMapping("messages/{id}/comments")
-	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<?> addComment(@PathVariable("id") int id, @RequestBody @Valid Comment newComment) throws URISyntaxException {
-		
-		Resource<Comment> resource = cAssembler.toResource(service.addComment(id, newComment));
-		
-		return ResponseEntity
-				.created(new URI(resource.getId().expand().getHref()))
-				.body(resource);
-	}
-	
-	@GetMapping("messages/{messageId}/comments/{commentId}")
-	public Resource<Comment> getCommentById(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
-		Comment comment = service.getCommentById(messageId, commentId);
-		
-		return cAssembler.toResource(comment);
-	}
-	
-	// Delete a comment by ID
-	@DeleteMapping("/messages/{messageId}/comments/{commentId}")
-	public ResponseEntity<?> deleteComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId) {
-		service.deleteComment(messageId, commentId);
-		return ResponseEntity.noContent().build();
-	}
 
-	// Update a comment
-	@PutMapping("/messages/{messageId}/comments/{commentId}")
-	public ResponseEntity<?> updateComment(@PathVariable("messageId") int messageId, @PathVariable("commentId") int commentId,
-			@RequestBody Comment newComment) throws URISyntaxException {
-		Comment commentToUpdate = service.updateComment(messageId, commentId, newComment);
-		
-		Resource<Comment> resource = cAssembler.toResource(commentToUpdate);
-		
+		Resource<Message> resource = assembler.toResource(message);
+
 		return ResponseEntity
 				.created(new URI(resource.getId().expand().getHref()))
 				.body(resource);
